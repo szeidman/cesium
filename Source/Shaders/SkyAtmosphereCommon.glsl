@@ -167,12 +167,6 @@ vec4 calculateFinalColor(vec3 positionWC, vec3 toCamera, vec3 lightDirection, ve
 
     vec3 rgb = rayleighPhase * rayleighColor + miePhase * mieColor;
 
-    if (rgb.b > 1000000.0)
-    {
-        // Discard colors that exceed some large number value to prevent against NaN's from the exponent calculation below
-        return vec4(0.0);
-    }
-
     const float exposure = 2.0;
     vec3 rgbExposure = vec3(1.0) - exp(-exposure * rgb);
 

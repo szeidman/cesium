@@ -37,19 +37,40 @@ attribute vec4 position;
 
 varying vec3 v_outerPositionWC;
 
-#ifndef GLOBE_TRANSLUCENT
+#ifndef FULL_ATMOSPHERE
 varying vec3 v_rayleighColor;
 varying vec3 v_mieColor;
 #endif
 
+// Enlarge the ellipsoid slightly to avoid atmosphere artifacts when the camera is slightly below the ellipsoid
+const float epsilon = 0.9999;
+
 void main(void)
 {
-#ifndef GLOBE_TRANSLUCENT
+#ifndef FULL_ATMOSPHERE
+    vec3 outerPositionWC = position.xyz;
+    vec3 directionWC = normalize(outerPositionWC - czm_viewerPositionWC);
+    vec3 directionEC = czm_viewRotation * directionWC;
+    czm_ray viewRay = czm_ray(vec3(0.0), directionEC);
+    czm_raySegment raySegment = czm_rayEllipsoidIntersectionInterval(viewRay, vec3(czm_view[3]), czm_ellipsoidInverseRadii * epsilon);
+    bool intersectsEllipsoid = raySegment.start >= 0.0;
+
+    vec3 startPositionWC = czm_viewerPositionWC;
+    if (intersectsEllipsoid)
+    {
+        startPositionWC = czm_viewerPositionWC + raySegment.stop * directionWC;
+    }
+
+    vec3 lightDirection = getLightDirection(startPositionWC);
+
+    vec3 mieColor;
+    vec3 rayleighColor;
+
     calculateMieColorAndRayleighColor(
-        czm_viewerPositionWC,
+        startPositionWC,
         position.xyz,
-        getLightDirection(czm_viewerPositionWC),
-        false,
+        lightDirection,
+        intersectsEllipsoid,
         v_mieColor,
         v_rayleighColor
     );

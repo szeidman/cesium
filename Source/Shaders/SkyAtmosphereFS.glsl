@@ -35,7 +35,7 @@
 
 varying vec3 v_outerPositionWC;
 
-#ifndef GLOBE_TRANSLUCENT
+#ifndef FULL_ATMOSPHERE
 varying vec3 v_rayleighColor;
 varying vec3 v_mieColor;
 #endif
@@ -45,7 +45,7 @@ const float epsilon = 1.000001;
 
 void main (void)
 {
-#ifdef GLOBE_TRANSLUCENT
+#ifdef FULL_ATMOSPHERE
     vec3 outerPositionWC = v_outerPositionWC;
     vec3 directionWC = normalize(outerPositionWC - czm_viewerPositionWC);
     vec3 directionEC = czm_viewRotation * directionWC;
@@ -74,7 +74,7 @@ void main (void)
         rayleighColor
     );
 
-    gl_FragColor = calculateFinalColor(startPositionWC, toCamera, lightDirection, rayleighColor, mieColor);
+    gl_FragColor = calculateFinalColor(czm_viewerPositionWC, czm_viewerPositionWC - v_outerPositionWC, getLightDirection(czm_viewerPositionWC), rayleighColor, mieColor);
 #else
     vec3 toCamera = czm_viewerPositionWC - v_outerPositionWC;
     vec3 lightDirection = getLightDirection(czm_viewerPositionWC);
